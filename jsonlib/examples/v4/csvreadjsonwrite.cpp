@@ -23,7 +23,7 @@ int main() {
         try {
             csv_reader_t reader;
             cin.unsetf(::std::ios_base::skipws);
-            reader.read(cin, obj, ';' );
+            reader.read(cin, obj, ',' );
             cerr << "parsed" << endl;
 
         } catch( std::exception& e ) {
