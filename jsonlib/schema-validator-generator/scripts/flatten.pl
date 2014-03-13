@@ -5,6 +5,9 @@ use Digest::SHA1 qw(sha1_hex);
 
 sub id_from_json{
         my ($json) = @_;
+        if (my $id = $json->{'id'}) {
+                return sha1_hex($id);
+        }
         my $txt = encode_json($json);
         if ( $txt =~ /^[\"\{\},\w\:\-]{1,40}$/ ) {
                 $txt =~ tr/:,\{\}\"-/__/d;
@@ -18,20 +21,33 @@ sub id_from_json{
 sub flatten_subschema {
     my ( $schema, $cache ) = @_;
     my $desc = delete $schema->{'description'};
-    my $id = $schema->{"id"} || id_from_json($schema);
+    my $id = id_from_json($schema);
     if ( $cache->{$id} ) {
         warn ("this schema is already cached: ", encode_json($schema), "\n" );
         $cache->{$id}->{'used'}++;
         return $id;
     }
 
-    my @constraints ;
+    my @checks ;
+
+    if ( $schema->{'type'}  ) {
+            push @checks, {
+                    type  => 'has_type',
+                    value =>   $schema->{'type'}
+            }
+    }
+    if ( $schema->{'format'}  ) {
+            push @checks, {
+                    type  => 'has_format',
+                    value =>   $schema->{'format'}
+            }
+    }
 
     if ( $schema->{'properties'} ) {
         foreach my $key ( keys %{$schema->{'properties'}} ) {
                 my $value = $schema->{'properties'}->{$key} ;
-                my $schema_id = $value->{'$ref'} || flatten_subschema($value, $cache ) ;
-                    push @constraints, {
+                my $schema_id = $value->{'$ref'} ? sha1_hex($value->{'$ref'} ) : flatten_subschema($value, $cache ) ;
+                    push @checks, {
                         type => "has_attribute",
                         value => {
                                 name  => $key,
@@ -42,20 +58,8 @@ sub flatten_subschema {
         
         }
     }
-    if ( $schema->{'type'}  ) {
-            push @constraints, {
-                    type  => 'has_type',
-                    value =>   $schema->{'type'}
-            }
-    }
-    if ( $schema->{'format'}  ) {
-            push @constraints, {
-                    type  => 'has_format',
-                    value =>   $schema->{'format'}
-            }
-    }
-    $cache->{$id} = {
-            constraints => \@constraints,
+        $cache->{$id} = {
+            checks => \@checks,
             used => 1,
             desc => $desc || encode_json($schema)
             };
@@ -71,7 +75,7 @@ sub main {
         flatten_subschema($schema, \%cache);
     }
     use Data::Dumper;
-    print Dumper(\%cache);
+    print encode_json(\%cache);
 
     return 0;
 }
