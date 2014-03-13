@@ -1,5 +1,6 @@
 {
     "description": "A geographical coordinate",
+    "id": "http://json-schema.org/geo",
     "type": "object",
     "properties": {
         "latitude": { "type": "number" },
