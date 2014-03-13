@@ -1,0 +1,29 @@
+{
+
+        "classes": [
+                {
+                "name"        : "message",
+                "members": [
+                         {
+                                "name": "string1",
+                                "isa": "string"
+                         },
+                         {
+                                "name": "string2",
+                                "isa": "string"
+                         },
+                         {
+                                "name": "string3",
+                                "isa": "string"
+                         }
+                        ]
+                }
+      ]
+
+
+
+
+
+}
+
+        

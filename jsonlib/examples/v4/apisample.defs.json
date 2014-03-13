@@ -1,0 +1,48 @@
+{
+
+        "classes": [
+                {
+                "name"        : "item",
+                "members": [
+                         {
+                                "name": "number",
+                                "isa": "int",
+                                "check": "greater_than<4>",
+                                "init": "2"
+                         },
+                         {
+                                "name": "text",
+                                "isa": "string",
+                                "init": "\"pippo\""
+                         }
+                        ]
+                },
+                {
+                "name"        : "msgbase",
+                "members": [
+                         {
+                                "name": "type",
+                                "isa": "string"
+                         }
+                        ]
+                },
+
+                {
+                "base"        : "msgbase",
+                "name"        : "message",
+                "members": [
+                         {
+                                "name": "my-items",
+                                "isa": "[item]"
+                         }
+                        ]
+                }
+      ]
+
+
+
+
+
+}
+
+        

@@ -1,0 +1,36 @@
+{
+
+
+
+        "classes": [
+                {
+                "id"        : "echo_content",
+                "members": [
+                         {
+                                "id": "number",
+                                "type": "int"
+                         },
+                         {
+                                "id": "text",
+                                "type": "std::string"
+                         }
+                        ]
+                },
+                {
+                "id"        : "echo_response",
+                "members": [
+                         {
+                                "id": "content",
+                                "type": "echo_content"
+                         }
+                        ]
+                }
+      ]
+
+
+
+
+
+}
+
+        
