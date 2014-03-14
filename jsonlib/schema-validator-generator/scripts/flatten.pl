@@ -35,7 +35,8 @@ sub flatten_subschema {
     my %check_map_value = (
                         type => "has_type",
                         format => "has_format",
-                        required => "must_have"
+                        required => "must_have",
+                        "enum"   => "equals_one_of"
                     );
 
     foreach my $k ( keys %check_map_value ) {

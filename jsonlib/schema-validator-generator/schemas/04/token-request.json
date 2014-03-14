@@ -1,4 +1,5 @@
 {
+    "description": "Token request types",
     "oneOf" : [
                     {
                             "description": "http://tools.ietf.org/html/rfc6749#section-4.1.3",

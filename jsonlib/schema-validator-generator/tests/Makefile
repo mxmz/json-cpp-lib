@@ -9,4 +9,4 @@ jsonreadwrite: ../../src/mxmz/json/v4/json_*.h* jsonreadwrite.cpp Makefile autog
 
 
 autogen/token_request_schemas.hxx:
-	( cd ../schemas/04 && perl ../../scripts/flatten.pl token-request.json | perl ../../scripts/expand_template.pl ../../templates/mxmz_v4.tmpl ) > autogen/token_request_schemas.hxx
+	mkdir -p ./autogen && ( cd ../schemas/04 && perl ../../scripts/flatten.pl token-request.json | perl ../../scripts/expand_template.pl ../../templates/mxmz_v4.tmpl ) > autogen/token_request_schemas.hxx
