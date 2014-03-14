@@ -96,7 +96,13 @@ sub main {
     my %files = ();
     foreach my $f ( @files ) {
         my $schema = decode_json( scalar slurp($f) );
-        $files{$f} = flatten_subschema($schema, \%cache);
+        my $id = $f;
+        $id =~ tr#/.#__#;
+
+        $files{$f} = {
+                id => $id,
+                schema => flatten_subschema( $schema, \%cache )
+        };
     }
     use Data::Dumper;
     print encode_json( {
