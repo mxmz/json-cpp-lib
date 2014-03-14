@@ -9,7 +9,7 @@ sub id_from_json{
                 return sha1_hex($id);
         }
         my $txt = encode_json($json);
-        if ( $txt =~ /^[\"\{\},\w\:\-]{1,40}$/ ) {
+        if ( $txt =~ /^[\"\{\},\w\:\-]{1,60}$/ ) {
                 $txt =~ tr/:,\{\}\"-/__/d;
                 return $txt;
         } else {
@@ -20,6 +20,9 @@ sub id_from_json{
 
 sub flatten_subschema {
     my ( $schema, $cache ) = @_;
+    if ( my $ref = delete $schema->{'$ref'} ) {
+                return sha1_hex($ref);
+    }
     my $desc = delete $schema->{'description'};
     my $id = id_from_json($schema);
     if ( $cache->{$id} ) {
@@ -29,24 +32,44 @@ sub flatten_subschema {
     }
 
     my @checks ;
+    my %check_map_value = (
+                        type => "has_type",
+                        format => "has_format",
+                        required => "must_have"
+                    );
 
-    if ( $schema->{'type'}  ) {
-            push @checks, {
-                    type  => 'has_type',
-                    value =>   $schema->{'type'}
+    foreach my $k ( keys %check_map_value ) {
+            if ( $schema->{$k}  ) {
+                    push @checks, {
+                            type  => $check_map_value{$k},
+                            value =>   $schema->{$k}
+                    }
             }
     }
-    if ( $schema->{'format'}  ) {
-            push @checks, {
-                    type  => 'has_format',
-                    value =>   $schema->{'format'}
+
+    my %check_map_subschema = (
+                        anyOf => "satisfies_any",
+                        allOf => "satisfies_all",
+                        oneOf => "satisfies_one",
+                        items => "is_array_of"
+                    );
+
+    foreach my $k ( keys %check_map_subschema ) {
+            if ( $schema->{$k}  ) {
+                    push @checks, {
+                            type  => $check_map_subschema{$k},
+                            value =>  ref($schema->{$k}) eq 'HASH' ?
+                                        flatten_subschema( $schema->{$k}  , $cache ) :
+                                         [  map { flatten_subschema($_,$cache)  }  @{ $schema->{$k} } ]
+                    }
             }
     }
+
 
     if ( $schema->{'properties'} ) {
         foreach my $key ( keys %{$schema->{'properties'}} ) {
                 my $value = $schema->{'properties'}->{$key} ;
-                my $schema_id = $value->{'$ref'} ? sha1_hex($value->{'$ref'} ) : flatten_subschema($value, $cache ) ;
+                my $schema_id = flatten_subschema($value, $cache ) ;
                     push @checks, {
                         type => "has_attribute",
                         value => {
@@ -70,12 +93,16 @@ sub flatten_subschema {
 sub main {
     my (@files) = @_;
     my %cache;
+    my %files = ();
     foreach my $f ( @files ) {
         my $schema = decode_json( scalar slurp($f) );
-        flatten_subschema($schema, \%cache);
+        $files{$f} = flatten_subschema($schema, \%cache);
     }
     use Data::Dumper;
-    print encode_json(\%cache);
+    print encode_json( {
+                    files => \%files,
+                    schemas => \%cache,
+                    } );
 
     return 0;
 }

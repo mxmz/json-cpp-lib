@@ -1,0 +1,18 @@
+{
+    "title": "GetAction request schema",
+    "type" : "object",
+    "properties": {
+        "Checksum": {
+            "type": ["string","null"]
+            },
+        "NodeCompliant": {
+            "type": "boolean"
+            
+            },
+        "ChecksumAlgorithm": {
+            "enum": ["SHA-256"],
+            "description": "Checksum algorithm used to generate checksum"
+            }
+        },
+    "required": ["Checksum", "NodeCompliant", "ChecksumAlgorithm"]
+}
