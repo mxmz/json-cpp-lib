@@ -11,7 +11,7 @@ sub id_from_json{
         my $txt = encode_json($json);
         if ( $txt =~ /^[\"\{\},\w\:\-]{1,60}$/ ) {
                 $txt =~ tr/:,\{\}\"-/__/d;
-                return $txt;
+                return "j".$txt;
         } else {
             return sha1_hex($txt);
         }
