@@ -68,6 +68,7 @@ public:
     // special features ...
 
     json_value_handle& operator[]( const char* k ) {
+            cerr << "a" << endl;
         return this->cast_value<json_object>(true).item(k);
     }
 

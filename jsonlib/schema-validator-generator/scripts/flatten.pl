@@ -71,7 +71,7 @@ sub flatten_subschema {
                 my $value = $schema->{'properties'}->{$key} ;
                 my $schema_id = flatten_subschema($value, $cache ) ;
                     push @checks, {
-                        type => "has_attribute",
+                        type => "has_property",
                         value => {
                                 name  => $key,
                                 schema => $schema_id,
@@ -84,7 +84,7 @@ sub flatten_subschema {
         $cache->{$id} = {
             checks => \@checks,
             used => 1,
-            desc => $desc || encode_json($schema)
+            desc => $desc || substr( encode_json($schema), 0, 40 )
             };
     return $id;
 
@@ -95,18 +95,22 @@ sub main {
     my %cache;
     my %files = ();
     foreach my $f ( @files ) {
-        my $schema = decode_json( scalar slurp($f) );
-        my $id = $f;
-        $id =~ tr#/.#__#;
-
-        $files{$f} = {
+        my $source = decode_json( scalar slurp($f) );
+        my @schemas = ref($source) eq 'ARRAY' ? @{$source} : $source;
+        my $count = 1;
+        foreach my $schema (@schemas ) {
+            my $id = $f;
+            $id =~ tr#/.-#___#;
+            $id .= $count++;
+            $files{$id} = {
                 id => $id,
                 schema => flatten_subschema( $schema, \%cache )
-        };
+            };
+        }
     }
     use Data::Dumper;
     print encode_json( {
-                    files => \%files,
+                    sources => \%files,
                     schemas => \%cache,
                     } );
 
