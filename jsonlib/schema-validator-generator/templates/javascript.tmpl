@@ -1,0 +1,86 @@
+[% USE JSON %]
+
+( function() {
+        var definitions = {}
+        
+
+
+        [% FOREACH k IN schemas.keys() %]
+        [% defs = schemas.$k.defs %]
+
+        // [%schemas.$k.desc %] //
+        /*
+            [% schemas.$k.defs.json %]
+        */   
+        [%IF defs.enum  %] // enum
+        [% values = defs.enum %]
+        var enum_[%k%] = { [% FOREACH s IN values %][%IF loop.index() != 0 %],[%END%] [%s.json%]: true[%END%] };
+        [%END%]
+        function check_[%k%]( v ) { 
+         var err;
+         [%IF defs.required %] // required
+            [% properties = defs.required %]
+            [%FOREACH p IN properties %]
+                if ( v.[%p%] === undefined   ) {
+                    return "Missing attribute " + [%p.json%];
+                }
+            [%END%]
+
+         [%END%]
+         [%IF defs.properties %]  // properties [% defs.properties.json %]
+            [% properties = defs.properties %]
+            [%FOREACH p IN properties %]
+             if ( v.[%p.key%] !== undefined   ) {
+             if ( err = check_[%p.value%] ( v.[%p.key%]) ) {
+                 return err;
+             }
+            }
+            [%END%]
+         [%END%]
+         [%IF defs.oneOf %] // oneOf
+            [% subschemas = defs.oneOf %]
+              err = 0;
+             [%FOREACH s IN subschemas %]
+              if ( null !== check_[%s%](v) ) err++; // [% schemas.$s.desc %]
+              [%END%]
+              if ( err !== [% subschemas.size() - 1 %] ) {
+                        return "oneOf must match 1 and only one: " + [%schemas.$k.desc.json%] ;
+              }
+         [%END%]
+         [%IF defs.enum  %] // enum
+            [% values = defs.enum %]
+            if ( enum_[%k%][v] !== true   ) {
+                            return "value must be one of: " + ([%values.json%].join(", "));
+             }
+         [%END%]
+         return null;
+        } 
+        [%END%]
+
+
+
+    [% FOREACH k IN sources.keys() %]
+    definitions.assert_[%k%] = function( v ) {
+                if ( err = check_[%sources.$k.schema %](v) ) {
+                    throw(err);
+                }
+    }
+    definitions.check_[%k%] = check_[%sources.$k.schema %];
+    [%END%]
+
+
+    // CommonJS
+    if (typeof exports === "object") {
+        module.exports = definitions;
+
+    // RequireJS
+    } else {
+    
+        [% FOREACH k IN sources.keys() %]
+        jschema_assert_[%k%] = definitions.assert_[%k%];
+        jschema_check_[%k%] = definitions.check_[%k%];
+        [%END%]
+    }
+
+})();
+
