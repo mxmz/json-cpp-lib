@@ -28,9 +28,6 @@ int main() {
         try {
             slurp(cin) >> obj;
             cerr << "parsed" << endl;
-            cerr << obj["grant_type"] << endl;
-            const json_value_handle& v = obj["grant_type"];
-            cerr << v << endl;
             assert_token_request_json1(obj);
 
         } catch( std::exception& e ) {

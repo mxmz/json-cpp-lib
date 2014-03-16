@@ -1,19 +1,19 @@
 use strict;
 use JSON::XS qw(decode_json encode_json);
 use File::Slurp qw(slurp);
-use Digest::SHA1 qw(sha1_hex);
+use Digest::MD5 qw(md5_hex);
 
 sub id_from_json{
         my ($json) = @_;
         if (my $id = $json->{'id'}) {
-                return sha1_hex($id);
+                return md5_hex($id);
         }
         my $txt = encode_json($json);
         if ( $txt =~ /^[\"\{\},\w\:\-]{1,60}$/ ) {
                 $txt =~ tr/:,\{\}\"-/__/d;
                 return "j".$txt;
         } else {
-            return sha1_hex($txt);
+            return md5_hex($txt);
         }
 }
 
@@ -21,69 +21,48 @@ sub id_from_json{
 sub flatten_subschema {
     my ( $schema, $cache ) = @_;
     if ( my $ref = delete $schema->{'$ref'} ) {
-                return sha1_hex($ref);
+                return md5_hex($ref);
     }
     my $desc = delete $schema->{'description'};
     my $id = id_from_json($schema);
     if ( $cache->{$id} ) {
-        warn ("this schema is already cached: ", encode_json($schema), "\n" );
+        warn ("schema already in cache: ", encode_json($schema), "\n" );
         $cache->{$id}->{'used'}++;
         return $id;
     }
 
     my @checks ;
-    my %check_map_value = (
-                        type => "has_type",
-                        format => "has_format",
-                        required => "must_have",
-                        "enum"   => "equals_one_of"
-                    );
+    my %defs;
 
-    foreach my $k ( keys %check_map_value ) {
+    my %subschema_defs = qw( anyOf allOf oneOf items );
+
+    foreach my $k ( keys %subschema_defs ) {
             if ( $schema->{$k}  ) {
-                    push @checks, {
-                            type  => $check_map_value{$k},
-                            value =>   $schema->{$k}
-                    }
-            }
-    }
-
-    my %check_map_subschema = (
-                        anyOf => "satisfies_any",
-                        allOf => "satisfies_all",
-                        oneOf => "satisfies_one",
-                        items => "is_array_of"
-                    );
-
-    foreach my $k ( keys %check_map_subschema ) {
-            if ( $schema->{$k}  ) {
-                    push @checks, {
-                            type  => $check_map_subschema{$k},
-                            value =>  ref($schema->{$k}) eq 'HASH' ?
+                 $schema->{$k} = ref($schema->{$k}) eq 'HASH' ?
                                         flatten_subschema( $schema->{$k}  , $cache ) :
                                          [  map { flatten_subschema($_,$cache)  }  @{ $schema->{$k} } ]
-                    }
             }
     }
 
 
     if ( $schema->{'properties'} ) {
+        my %properties;
         foreach my $key ( keys %{$schema->{'properties'}} ) {
                 my $value = $schema->{'properties'}->{$key} ;
                 my $schema_id = flatten_subschema($value, $cache ) ;
                     push @checks, {
-                        type => "has_property",
+                        type => "property_satisfies",
                         value => {
                                 name  => $key,
                                 schema => $schema_id,
                         }
-
-                }
-        
+                };
+                $properties{$key} = $schema_id;
         }
+        $schema->{'properties'} = \%properties;
     }
         $cache->{$id} = {
-            checks => \@checks,
+            defs   => $schema,
             used => 1,
             desc => $desc || substr( encode_json($schema), 0, 40 )
             };

@@ -23,7 +23,7 @@ typename mxmz::json::v4::json_value_handle_tmpl<D,C>::json_array& as_vector(
 int main() {
         json_value_handle obj;
 
-        as_vector(obj);
+//        as_vector(obj);
 
         try {
  //           std::string data;
@@ -32,6 +32,11 @@ int main() {
      //       data >> obj ;
             slurp(cin) >> obj;
             cerr << "parsed" << endl;
+
+            const json_value_handle obj2( std::move(obj));
+            cout <<   obj2  << endl;
+            const auto* attr = obj2.attribute("classes");
+            cerr << attr << endl;
 
         } catch( std::exception& e ) {
             cerr << e.what() << endl;

@@ -1,5 +1,6 @@
   
   #include "mxmz/json/v4/json_std.h"
+  #include "mxmz/json/v4/json_std.hxx"
   #include <iostream>
 
   namespace js = mxmz::json::v4::std;

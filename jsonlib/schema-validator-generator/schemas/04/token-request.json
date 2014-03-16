@@ -10,7 +10,7 @@
                                 },
                                 "code": {
                                         "type" : "string",
-                                        "minLength": 1
+                                        "minLength": 10
                                 },
                                 "redirect_uri": {
                                         "oneOf": [
@@ -79,11 +79,11 @@
                                 },
                                 "type": {
                                         "type" : "string",
-                                        "minLength": 1
+                                        "minLength": 3
                                 },
                                 "token": {
                                         "type" : "string",
-                                        "minLength": 1
+                                        "minLength": 5
                                 },
                                 "scope": {
                                         "type" : "string",
@@ -114,4 +114,5 @@
                              }
     },
     "required" : [ "grant_type" ]
+
 }

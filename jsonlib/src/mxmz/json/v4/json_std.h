@@ -75,6 +75,20 @@ public:
         return this->cast_value<json_object>(true).item(k);
     }
 
+    const json_value_handle* attribute( const ::std::string& k ) const {
+        const auto& v = this->cast_value_const<json_object>();
+        const auto it = v.get().find(k);
+        if ( it != v.get().end() ) {
+                    return &(it->second);
+        } else {
+            return 0;
+        }
+    }
+    
+    json_value_handle* attribute( const ::std::string& k ) {
+        return const_cast<json_value_handle*>( static_cast<const json_value_handle&>(*this).attribute(k) );
+    }
+
     json_value_handle& operator[]( size_t idx ) {
         return this->cast_value<json_array>(true).item(idx);
     }
