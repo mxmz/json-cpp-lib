@@ -18,7 +18,7 @@ sub id_from_json{
 }
 
 
-sub flatten_subschema {
+sub cache_schema {
     my ( $schema, $cache ) = @_;
     if ( my $ref = delete $schema->{'$ref'} ) {
                 return md5_hex($ref);
@@ -39,8 +39,8 @@ sub flatten_subschema {
     foreach my $k ( keys %subschema_defs ) {
             if ( $schema->{$k}  ) {
                  $schema->{$k} = ref($schema->{$k}) eq 'HASH' ?
-                                        flatten_subschema( $schema->{$k}  , $cache ) :
-                                         [  map { flatten_subschema($_,$cache)  }  @{ $schema->{$k} } ]
+                                        cache_schema( $schema->{$k}  , $cache ) :
+                                         [  map { cache_schema($_,$cache)  }  @{ $schema->{$k} } ]
             }
     }
 
@@ -49,14 +49,7 @@ sub flatten_subschema {
         my %properties;
         foreach my $key ( keys %{$schema->{'properties'}} ) {
                 my $value = $schema->{'properties'}->{$key} ;
-                my $schema_id = flatten_subschema($value, $cache ) ;
-                    push @checks, {
-                        type => "property_satisfies",
-                        value => {
-                                name  => $key,
-                                schema => $schema_id,
-                        }
-                };
+                my $schema_id = cache_schema($value, $cache ) ;
                 $properties{$key} = $schema_id;
         }
         $schema->{'properties'} = \%properties;
@@ -84,7 +77,7 @@ sub main {
             $id .= $count++;
             $files{$id} = {
                 id => $id,
-                schema => flatten_subschema( $schema, \%cache )
+                schema => cache_schema( $schema, \%cache )
             };
         }
     }
