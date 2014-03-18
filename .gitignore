@@ -1,3 +1,5 @@
 node_modules/
-example/creds.json
 .*.swp
+*.ii
+*.s
+*.o
