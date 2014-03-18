@@ -27,3 +27,6 @@ autogen/all_schemas.hxx: ../schemas/04/*.json  ../templates/mxmz_v4.tmpl
 	mkdir -p ./autogen && ( cd ../schemas/04 && perl ../../scripts/flatten.pl *.json | perl ../../scripts/expand_template.pl ../../templates/mxmz_v4.tmpl ) > autogen/all_schemas.hxx
 
 
+
+clean:
+	rm autogen/*
