@@ -10,7 +10,7 @@ void slurp( ::std::istream& in, std::string& data );
 
 namespace apisample {
 
-
+// modified
 
 template< class ToT, class FromT >
 struct convert_helper {
