@@ -5,7 +5,6 @@ using namespace mxmz::json::v4::std;
 using namespace mxmz::json::v4::util;
 using namespace std;
 
-
 void slurp( ::std::istream& in, std::string& data );
 ::std::string slurp( ::std::istream& in );
 
