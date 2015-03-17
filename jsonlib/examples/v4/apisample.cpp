@@ -5,13 +5,12 @@ using namespace mxmz::json::v4::std;
 using namespace mxmz::json::v4::util;
 using namespace std;
 
-
 void slurp( ::std::istream& in, std::string& data );
 ::std::string slurp( ::std::istream& in );
 
 namespace apisample {
 
-
+// modified
 
 template< class ToT, class FromT >
 struct convert_helper {
