@@ -35,55 +35,74 @@ function cacheSchema(schema, cache ) {
     }    
 
     var desc = schema.description;
+    delete schema.description;
     var id = idFromJson(schema);
 
-    if ( cache.id ) {
+    if ( cache[id] ) {
         console.error("schema already in cache: ", JSON.stringify(schema) );
         cache[ id ].used ++ ;
         return id;
     }
 
-    my @checks ;
-    my %defs;
-
     var checks = [];
     var defs = [];
-/*
-    foreach my $k ( keys %subschema_defs ) {
-            if ( $schema->{$k}  ) {
-                 $schema->{$k} = ref($schema->{$k}) eq 'HASH' ?
-                                        cache_schema( $schema->{$k}  , $cache ) :
-                                         [  map { cache_schema($_,$cache)  }  @{ $schema->{$k} } ]
-            }
-    }
-*/
   
-    ["anyOf", "allOf", "oneOf", "items"].forEach( function(v) {
-                var 
+    ["anyOf", "allOf", "oneOf", "items"].forEach( function(name) {
+                var v = schema[name];
+                if ( v !== undefined ) {
+                    if ( Array.isArray(v) ) {
+                            schema[name] = v.map( function(elem) { return cacheSchema(elem,cache); } );
+                    } else {
+                            schema[name] = cacheSchema( v, cache );
+                    }
+                }
+                  
+      } );
 
-                    } );
-
-
-    if ( $schema->{'properties'} ) {
-        my %properties;
-        foreach my $key ( keys %{$schema->{'properties'}} ) {
-                my $value = $schema->{'properties'}->{$key} ;
-                my $schema_id = cache_schema($value, $cache ) ;
-                $properties{$key} = $schema_id;
+    var props = schema["properties"];
+    if ( props !== undefined ) {
+        for( var k in props ) {
+                var v = props[k];
+                props[k] = cacheSchema( v, cache );
         }
-        $schema->{'properties'} = \%properties;
     }
-        $cache->{$id} = {
-            defs   => $schema,
-            used => 1,
-            desc => $desc || substr( encode_json($schema), 0, 40 )
-            };
-    return $id;
 
+    cache[id] = {
+            defs : schema,
+            used: 1,
+            desc: desc || JSON.stringify(schema).substr(0,40)
+    }
+    return id;
+}
+
+
+function main(files) {
+        var sources = {};
+        var cache = {};
+        files.forEach( function(path) {
+                var content =   fs.readFileSync(path);
+                var schemas = JSON.parse(content);
+                if ( ! Array.isArray(schemas) ) {
+                    schemas = [ schemas ];
+                }
+                var c = 1;
+                schemas.forEach( function(v) {
+                        var id = path.replace(/[\/\.\-]/g, "_") + c++;
+                        sources[id] = {
+                                id : id,
+                                schema : cacheSchema(v,cache)
+                        }
+               } );
+           } );
+        console.log( JSON.stringify( {
+                                    files: sources,
+                                    schemas: cache
+                                } ) ) ;
 }
 
 
 
+main( process.argv.slice(2) || [] );
 
 
 
@@ -91,31 +110,3 @@ function cacheSchema(schema, cache ) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- console.log( id_from_json( {
-
-                            "a": 1,
-                            "b": 2,
-                            "c": {
-                                    "casa1": "asd",
-                                    "casa2": "asd",
-
-                                    }
-                         } ) );
