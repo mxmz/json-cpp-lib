@@ -11,15 +11,15 @@ function md5Hex(material) {
 
 function idFromJson(json) {
          if ( json.id !== undefined && json.id.length ) {
-            return md5_hex(id);
+            return 'X'+md5Hex(json.id).toUpperCase();
          }
          function jsonDigest(str) {
             if ( str.match( /^[\"\{\},\w\:\-]{1,60}$/ ) ) {
-                    return 'j'+ str
-                            .replace(/[:,]/g, "_")
-                            .replace(/[\{\}\"-]/g, "");
+                    return 'J'+ str
+                            .replace(/[:,]/g, "0")
+                            .replace(/[\{\}\"-]/g, "").toUpperCase();
             } else {
-                    return md5Hex(str);
+                    return 'X'+ md5Hex(str).toUpperCase();
             }
          }
          return jsonDigest(JSON.stringify(json) );
@@ -31,11 +31,10 @@ function cacheSchema(schema, cache ) {
     var $ref = schema['$ref'];
     delete schema['$ref'];
     if ( $ref ) {
-            return md5Hex($ref);
-    }
+            return 'X'+ md5Hex($ref).toUpperCase();
+    }    
 
-
-    var desc = schema.description;
+    var desc = schema.description || JSON.stringify(schema).substr(0,40)
     delete schema.description;
     var id = idFromJson(schema);
 
@@ -71,7 +70,7 @@ function cacheSchema(schema, cache ) {
     cache[id] = {
             defs : schema,
             used: 1,
-            desc: desc || JSON.stringify(schema).substr(0,40)
+            desc: desc 
     }
     return id;
 }
@@ -93,38 +92,9 @@ function preprocess( schemas ) {
 }
 
 
-function main(files) {
-        var sources = {};
-        var args = [];
-        files.forEach( function(path) {
-                var content =   fs.readFileSync(path);
-                var schemas = JSON.parse(content);
-                if ( ! Array.isArray(schemas) ) {
-                    schemas = [ schemas ];
-                }
-                var c = 1;
-                schemas.forEach( function(v) {
-                        var id = path.replace(/[\/\.\-]/g, "_") + c++;
-                        args.push( {    
-                                        id: id,
-                                        schema: v
-                                } );
-               } );
-           } );
-        var result = preprocess(args);
-        console.log( JSON.stringify( {
-                                    files: result.sources,
-                                    schemas: result.schemas
-                                } ) ) ;
-}
 
 
-
-main( process.argv.slice(2) || [] );
-
-
-
-
+module.exports = preprocess;
 
 
 
