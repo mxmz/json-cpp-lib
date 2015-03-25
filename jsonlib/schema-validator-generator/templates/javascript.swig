@@ -1,6 +1,6 @@
 
 ( function() {
-        var definitions = {}
+        var definitions = { check : {}, assert : {} } ;
 
         {% for s in schemas %}
         {% set defs = s.defs %}
@@ -89,12 +89,12 @@
 
 
     {% for s in sources %}
-    definitions.assert_{{ loop.key }} = function( v ) {
+    definitions.assert[{{ JSON.stringify(loop.key) }}] = function( v ) {
                 if ( err = check_{{ s.schema }}(v) ) {
                     throw(err);
                 }
     }
-    definitions.check_{{ loop.key }} = check_{{ s.schema }};
+    definitions.check[{{ JSON.stringify(loop.key) }}] = check_{{ s.schema }};
     {%endfor%}
 
 
@@ -104,10 +104,11 @@
 
     // RequireJS
     } else {
-    
+ 	jschema_assert = {};
+	jschema_check = {} ;   
         {% for s in sources %}
-        jschema_assert_{{ loop.key }} = definitions.assert_{{ loop.key }};
-        jschema_check_{{ loop.key }} = definitions.check_{{ loop.key }};
+        jschema_assert[{{ JSON.stringify(loop.key) }}] = definitions.assert[{{ JSON.stringify(loop.key) }}];
+        jschema_check[{{ JSON.stringify(loop.key) }}] =  definitions.check[{{ JSON.stringify(loop.key) }}];
         {%endfor%}
     }
 

@@ -12,11 +12,11 @@ function main(files) {
                 if ( ! Array.isArray(schemas) ) {
                     schemas = [ schemas ];
                 }
-                var c = 1;
+                var c = 0;
                 schemas.forEach( function(v) {
-                        var id = path.replace(/[\/\.\-]/g, "_") + c++;
+                        var id = ++c > 0 ? path : path + "#"+c;
                         args.push( {    
-                                        id: id,
+                                        id: v.id || id,
                                         schema: v
                                 } );
                } );
