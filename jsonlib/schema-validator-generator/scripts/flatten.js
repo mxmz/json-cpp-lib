@@ -32,7 +32,8 @@ function cacheSchema(schema, cache ) {
     delete schema['$ref'];
     if ( $ref ) {
             return md5Hex($ref);
-    }    
+    }
+
 
     var desc = schema.description;
     delete schema.description;
